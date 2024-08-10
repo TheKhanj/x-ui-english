@@ -46,5 +46,9 @@ func IsDebug() bool {
 }
 
 func GetDBPath() string {
+	env := os.Getenv("XUI_DB_PATH")
+	if env != "" {
+		return env
+	}
 	return fmt.Sprintf("/etc/%s/%s.db", GetName(), GetName())
 }
