@@ -21,8 +21,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-var trafficRegex = regexp.MustCompile("(inbound|outbound)>>>([^>]+)>>>traffic>>>(downlink|uplink)")
-var ClientTrafficRegex = regexp.MustCompile("(user)>>>([^>]+)>>>traffic>>>(downlink|uplink)")
+var (
+	trafficRegex       = regexp.MustCompile("(inbound|outbound)>>>([^>]+)>>>traffic>>>(downlink|uplink)")
+	ClientTrafficRegex = regexp.MustCompile("(user)>>>([^>]+)>>>traffic>>>(downlink|uplink)")
+)
 
 func GetBinaryName() string {
 	return fmt.Sprintf("xray-%s-%s", runtime.GOOS, runtime.GOARCH)
@@ -33,6 +35,10 @@ func GetBinaryPath() string {
 }
 
 func GetConfigPath() string {
+	env := os.Getenv("XUI_CONFIG_PATH")
+	if env != "" {
+		return env
+	}
 	return "bin/config.json"
 }
 
@@ -262,18 +268,18 @@ func (p *process) GetTraffic(reset bool) ([]*Traffic, []*ClientTraffic, error) {
 			matchs := ClientTrafficRegex.FindStringSubmatch(stat.Name)
 			if len(matchs) < 3 {
 				continue
-			}else {
+			} else {
 
 				isUser := matchs[1] == "user"
 				email := matchs[2]
 				isDown := matchs[3] == "downlink"
-				if ! isUser {
+				if !isUser {
 					continue
 				}
 				traffic, ok := emailTrafficMap[email]
 				if !ok {
 					traffic = &ClientTraffic{
-						Email:       email,
+						Email: email,
 					}
 					emailTrafficMap[email] = traffic
 					clientTraffics = append(clientTraffics, traffic)
@@ -283,7 +289,7 @@ func (p *process) GetTraffic(reset bool) ([]*Traffic, []*ClientTraffic, error) {
 				} else {
 					traffic.Up = stat.Value
 				}
-		
+
 			}
 			continue
 		}
