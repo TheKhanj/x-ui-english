@@ -1,14 +1,14 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 	"x-ui/database"
-	"encoding/json"
 	"x-ui/database/model"
+	"x-ui/logger"
 	"x-ui/util/common"
 	"x-ui/xray"
-	"x-ui/logger"
 
 	"gorm.io/gorm"
 )
@@ -50,7 +50,7 @@ func (s *InboundService) checkPortExist(port int, ignoreId int) (bool, error) {
 	return count > 0, nil
 }
 
-func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound,error) {
+func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound, error) {
 	exist, err := s.checkPortExist(inbound.Port, 0)
 	if err != nil {
 		return inbound, err
@@ -62,7 +62,7 @@ func (s *InboundService) AddInbound(inbound *model.Inbound) (*model.Inbound,erro
 
 	err = db.Save(inbound).Error
 	if err == nil {
-		s.UpdateClientStat(inbound.Id,inbound.Settings)
+		s.UpdateClientStat(inbound.Id, inbound.Settings)
 	}
 	return inbound, err
 }
@@ -146,7 +146,7 @@ func (s *InboundService) UpdateInbound(inbound *model.Inbound) (*model.Inbound, 
 	oldInbound.Sniffing = inbound.Sniffing
 	oldInbound.Tag = fmt.Sprintf("inbound-%v", inbound.Port)
 
-	s.UpdateClientStat(inbound.Id,inbound.Settings)
+	s.UpdateClientStat(inbound.Id, inbound.Settings)
 	db := database.GetDB()
 	return inbound, db.Save(oldInbound).Error
 }
@@ -195,7 +195,7 @@ func (s *InboundService) AddClientTraffic(traffics []*xray.ClientTraffic) (err e
 	for _, traffic := range traffics {
 		inbound := &model.Inbound{}
 
-		err := db.Model(model.Inbound{}).Where("settings like ?", "%" + traffic.Email + "%").First(inbound).Error
+		err := db.Model(model.Inbound{}).Where("settings like ?", "%"+traffic.Email+"%").First(inbound).Error
 		traffic.InboundId = inbound.Id
 		if err != nil {
 			logger.Warning("AddClientTraffic find model ", err, traffic.Email)
@@ -212,19 +212,19 @@ func (s *InboundService) AddClientTraffic(traffics []*xray.ClientTraffic) (err e
 			}
 		}
 		if tx.Where("inbound_id = ?", inbound.Id).Where("email = ?", traffic.Email).
-		UpdateColumn("enable", true).
-		UpdateColumn("expiry_time", traffic.ExpiryTime).
-		UpdateColumn("total",traffic.Total).
-		UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
-		UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).RowsAffected == 0 {
+			UpdateColumn("enable", true).
+			UpdateColumn("expiry_time", traffic.ExpiryTime).
+			UpdateColumn("total", traffic.Total).
+			UpdateColumn("up", gorm.Expr("up + ?", traffic.Up)).
+			UpdateColumn("down", gorm.Expr("down + ?", traffic.Down)).RowsAffected == 0 {
 			err = tx.Create(traffic).Error
 		}
-		
+
 		if err != nil {
 			logger.Warning("AddClientTraffic update data ", err)
 			continue
 		}
-	
+
 	}
 	return
 }
@@ -249,7 +249,7 @@ func (s *InboundService) DisableInvalidClients() (int64, error) {
 	count := result.RowsAffected
 	return count, err
 }
-func (s *InboundService) UpdateClientStat(inboundId int, inboundSettings string) (error) {
+func (s *InboundService) UpdateClientStat(inboundId int, inboundSettings string) error {
 	db := database.GetDB()
 
 	// get settings clients
@@ -258,8 +258,8 @@ func (s *InboundService) UpdateClientStat(inboundId int, inboundSettings string)
 	clients := settings["clients"]
 	for _, client := range clients {
 		result := db.Model(xray.ClientTraffic{}).
-		Where("inbound_id = ? and email = ?", inboundId, client.Email).
-		Updates(map[string]interface{}{"enable": true, "total": client.TotalGB, "expiry_time": client.ExpiryTime})
+			Where("inbound_id = ? and email = ?", inboundId, client.Email).
+			Updates(map[string]interface{}{"enable": true, "total": client.TotalGB, "expiry_time": client.ExpiryTime})
 		if result.RowsAffected == 0 {
 			clientTraffic := xray.ClientTraffic{}
 			clientTraffic.InboundId = inboundId
@@ -275,7 +275,7 @@ func (s *InboundService) UpdateClientStat(inboundId int, inboundSettings string)
 		if err != nil {
 			return err
 		}
-	
+
 	}
 	return nil
 }
@@ -289,14 +289,13 @@ func (s *InboundService) GetInboundClientIps(clientEmail string) (string, error)
 	}
 	return InboundClientIps.Ips, nil
 }
-func (s *InboundService) ClearClientIps(clientEmail string) (error) {
+func (s *InboundService) ClearClientIps(clientEmail string) error {
 	db := database.GetDB()
 
 	result := db.Model(model.InboundClientIps{}).
 		Where("client_email = ?", clientEmail).
 		Update("ips", "")
 	err := result.Error
-
 
 	if err != nil {
 		return err

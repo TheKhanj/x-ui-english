@@ -8,8 +8,8 @@ import (
 	"os"
 	"path"
 	"x-ui/config"
-	"x-ui/xray"
 	"x-ui/database/model"
+	"x-ui/xray"
 )
 
 var db *gorm.DB
@@ -91,7 +91,7 @@ func InitDB(dbPath string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 

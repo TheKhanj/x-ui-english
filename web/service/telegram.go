@@ -205,7 +205,7 @@ func (s *TelegramService) StartRun() {
 			} else {
 				msg.Text = fmt.Sprintf("✅ All inbound traffic has been successfully cleaned up")
 			}
-        // DEPRIATED. UPDATING KERNAL INTO ANY UNSUPPORTED VERSIONS MAY BREAK THE OS
+			// DEPRIATED. UPDATING KERNAL INTO ANY UNSUPPORTED VERSIONS MAY BREAK THE OS
 		// case "version":
 		//	versionStr := update.Message.CommandArguments()
 		//	currentVersion, _ := s.serverService.GetXrayVersions()
@@ -232,8 +232,8 @@ func (s *TelegramService) StartRun() {
 			msg.Text = `
 😁 Hi there! 
 💖Welcome to use the X-UI panel Telegram Bot! please send /help to see what can I do`
-        case "author":
-            msg.Text = `
+		case "author":
+			msg.Text = `
 👦🏻 Author  : Niduka Akalanka
 📍 Github   : https://github.com/NidukaAkalanka
 📞 Telegram: @NidukaAkalanka (Contact for any issues. Please be patient. As I am a student, I may not be able to reply immediately.)
