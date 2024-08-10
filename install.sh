@@ -152,11 +152,23 @@ download_xui(){
 
 panel_config() {
     yellow "For security reasons, after the installation/ update, you need to remember the port and the account password"
-    read -rp "Please set the login user name [default is a random user name]: " config_account
+    if [ -z $XUI_USERNAME ]; then
+			read -rp "Please set the login user name [default is a random user name]: " config_account
+		else
+			config_account=$XUI_USERNAME
+		fi
     [[ -z $config_account ]] && config_account=$(date +%s%N | md5sum | cut -c 1-8)
-    read -rp "Please set the login password. Don't include spaces [default is a random password]: " config_password
+    if [ -z $XUI_PASSWORD ]; then
+			read -rp "Please set the login password. Don't include spaces [default is a random password]: " config_password
+		else
+			config_password=$XUI_PASSWORD
+		fi
     [[ -z $config_password ]] && config_password=$(date +%s%N | md5sum | cut -c 1-8)
-    read -rp "Please set the panel access port [default is a random port]: " config_port
+    if [ -z $XUI_WEB_PORT ]; then
+			read -rp "Please set the panel access port [default is a random port]: " config_port
+		else
+			config_port=$XUI_WEB_PORT
+		fi
     [[ -z $config_port ]] && config_port=$(shuf -i 1000-65535 -n 1)
     until [[ -z $(ss -ntlp | awk '{print $4}' | grep -w "$config_port") ]]; do
         if [[ -n $(ss -ntlp | awk '{print $4}' | grep -w  "$config_port") ]]; then
